@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>28 | تحليل الحضور الرقمي</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-900: #0a1628;
+      --navy-800: #0f2744;
+      --navy-700: #1a3a5c;
+      --navy-600: #2563eb;
+      --navy-500: #3b82f6;
+      --white: #ffffff;
+      --white-90: rgba(255, 255, 255, 0.9);
+      --white-70: rgba(255, 255, 255, 0.7);
+      --white-50: rgba(255, 255, 255, 0.5);
+      --white-20: rgba(255, 255, 255, 0.2);
+      --white-10: rgba(255, 255, 255, 0.1);
+      --white-05: rgba(255, 255, 255, 0.05);
+      --success: #22c55e;
+      --warning: #eab308;
+      --error: #ef4444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      background: var(--navy-900);
+      color: var(--white);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Navigation */
+    .nav {
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--white-10);
+    }
+
+    .logo { display: flex; align-items: center; gap: 14px; }
+
+    .logo-mark {
+      width: 42px; height: 42px;
+      background: var(--white);
+      color: var(--navy-900);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700;
+    }
+
+    .logo-text {
+      font-size: 14px; font-weight: 500;
+      color: var(--white-70);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Main */
+    .main { max-width: 1100px; margin: 0 auto; padding: 60px 40px; }
+
+    /* Hero */
+    .hero { text-align: center; margin-bottom: 50px; }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--white-05);
+      border: 1px solid var(--white-10);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--white-70);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 { font-size: 42px; font-weight: 700; margin-bottom: 14px; }
+    .hero p { font-size: 17px; color: var(--white-50); max-width: 500px; margin: 0 auto; }
+
+    /* Search */
+    .search-section {
+      background: var(--navy-800);
+      border: 1px solid var(--white-10);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 40px;
+    }
+
+    .search-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .search-tab {
+      padding: 10px 20px;
+      background: var(--white-05);
+      border: 1px solid var(--white-10);
+      border-radius: 8px;
+      color: var(--white-50);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .search-tab.active {
+      background: var(--white);
+      color: var(--navy-900);
+      border-color: var(--white);
+    }
+
+    .search-row { display: flex; gap: 16px; }
+
+    .search-input-wrapper { flex: 1; position: relative; }
+
+    .search-input-wrapper input {
+      width: 100%;
+      padding: 16px 20px;
+      padding-right: 50px;
+      background: var(--navy-900);
+      border: 1px solid var(--white-10);
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: inherit;
+      color: var(--white);
+      direction: ltr;
+      text-align: left;
+    }
+
+    .search-input-wrapper input:focus {
+      outline: none;
+      border-color: var(--navy-500);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--white-50);
+    }
+
+    .search-btn {
+      padding: 16px 32px;
+      background: var(--white);
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--navy-900);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .search-btn:hover { transform: translateY(-1px); }
+    .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Status */
+    .status {
+      margin-top: 16px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status.show { display: flex; }
+    .status.loading { background: var(--white-05); color: var(--white-70); }
+    .status.error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+    .status.success { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--white-20);
+      border-top-color: var(--white);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Results */
+    .results { display: none; }
+    .results.show { display: block; animation: fadeIn 0.4s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Result Type Badge */
+    .result-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--white-05);
+      border: 1px solid var(--white-10);
+      border-radius: 100px;
+      font-size: 14px;
+      color: var(--white-70);
+      margin-bottom: 24px;
+    }
+
+    .result-type-badge.google { background: rgba(234, 67, 53, 0.1); border-color: rgba(234, 67, 53, 0.3); color: #ea4335; }
+    .result-type-badge.website { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: var(--navy-500); }
+
+    /* Score Section */
+    .score-section {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .score-card {
+      background: var(--navy-800);
+      border: 1px solid var(--white-10);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .score-ring {
+      width: 160px; height: 160px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-ring-bg { fill: none; stroke: var(--white-10); stroke-width: 12; }
+    .score-ring-progress {
+      fill: none;
+      stroke: var(--white);
+      stroke-width: 12;
+      stroke-linecap: round;
+      stroke-dasharray: 440;
+      stroke-dashoffset: 440;
+      transition: stroke-dashoffset 1s ease;
+    }
+
+    .score-value {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 42px;
+      font-weight: 700;
+    }
+
+    .score-label { font-size: 14px; color: var(--white-50); margin-bottom: 14px; }
+
+    .score-status {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .score-status.excellent { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+    .score-status.good { background: rgba(59, 130, 246, 0.15); color: var(--navy-500); }
+    .score-status.average { background: rgba(234, 179, 8, 0.15); color: var(--warning); }
+    .score-status.weak { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+
+    .summary-card {
+      background: var(--navy-800);
+      border: 1px solid var(--white-10);
+      border-radius: 16px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .summary-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white-50);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+
+    .summary-text { font-size: 17px; line-height: 1.9; color: var(--white-90); }
+
+    /* Business Info Card (Google) */
+    .business-card {
+      background: var(--navy-800);
+      border: 1px solid var(--white-10);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .business-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--white-10);
+    }
+
+    .business-info h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+    .business-info .category { font-size: 14px; color: var(--white-50); }
+    .business-info .address { font-size: 14px; color: var(--white-70); margin-top: 8px; }
+
+    .business-rating {
+      text-align: center;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #ea4335, #fbbc04);
+      border-radius: 12px;
+    }
+
+    .business-rating .rating-value { font-size: 32px; font-weight: 700; color: white; }
+    .business-rating .rating-max { font-size: 14px; color: rgba(255,255,255,0.8); }
+    .business-rating .reviews-count { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+    /* Sentiment Analysis */
+    .sentiment-card {
+      background: var(--navy-800);
+      border: 1px solid var(--white-10);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .sentiment-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--white-10);
+    }
+
+    .sentiment-header h3 { font-size: 16px; font-weight: 600; }
+
+    .sentiment-bars { margin-bottom: 28px; }
+
+    .sentiment-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .sentiment-label {
+      width: 80px;
+      font-size: 14px;
+      color: var(--white-70);
+    }
+
+    .sentiment-bar-wrapper {
+      flex: 1;
+      height: 24px;
+      background: var(--white-05);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .sentiment-bar {
+      height: 100%;
+      border-radius: 12px;
+      transition: width 1s ease;
+    }
+
+    .sentiment-bar.positive { background: var(--success); }
+    .sentiment-bar.neutral { background: var(--warning); }
+    .sentiment-bar.negative { background: var(--error); }
+
+    .sentiment-percentage {
+      width: 50px;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Topics */
+    .topics-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .topic-tag {
+      padding: 8px 16px;
+      background: var(--white-05);
+      border: 1px solid var(--white-10);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--white-70);
+    }
+
+    .topic-tag .percentage {
+      color: var(--navy-500);
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    /* Strengths & Weaknesses */
+    .sw-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .sw-card {
+      background: var(--white-05);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .sw-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sw-card.strengths h4 { color: var(--success); }
+    .sw-card.weaknesses h4 { color: var(--error); }
+
+    .sw-list { list-style: none; }
+
+    .sw-list li {
+      font-size: 14px;
+      color: var(--white-70);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--white-05);
+    }
+
+    .sw-list li:last-child { border-bottom: none; }
+
+    /* Info Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .info-card {
+      background: var(--navy-800);
+      border: 1px solid var(--white-10);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .info-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--white-10);
+    }
+
+    .info-icon {
+      width: 40px; height: 40px;
+      background: var(--white-05);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white-70);
+    }
+
+    .info-title { font-size: 15px; font-weight: 600; }
+
+    /* Contact & Social */
+    .contact-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--white-05);
+    }
+
+    .contact-row:last-child { border-bottom: none; }
+    .contact-label { font-size: 14px; color: var(--white-50); }
+    .contact-value { font-size: 14px; color: var(--white); direction: ltr; }
+
+    .social-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    .social-item {
+      background: var(--white-05);
+      border-radius: 10px;
+      padding: 16px 12px;
+      text-align: center;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: block;
+    }
+
+    .social-item.clickable:hover {
+      background: var(--white-10);
+      border-color: var(--navy-500);
+      transform: translateY(-2px);
+    }
+
+    .social-item.inactive { opacity: 0.4; }
+    .social-name { font-size: 12px; color: var(--white-70); margin-bottom: 4px; }
+
+    .social-indicator { width: 6px; height: 6px; border-radius: 50%; margin: 0 auto; }
+    .social-indicator.active { background: var(--success); }
+    .social-indicator.inactive { background: var(--white-20); }
+
+    /* Social Media Stats Cards */
+    .social-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .social-stat-card {
+      background: var(--navy-800);
+      border: 1px solid var(--white-10);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .social-stat-card.instagram {
+      border-top: 3px solid #E1306C;
+    }
+
+    .social-stat-card.twitter {
+      border-top: 3px solid #1DA1F2;
+    }
+
+    .social-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .social-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .social-card-icon.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+    .social-card-icon.twitter { background: #1DA1F2; }
+
+    .social-card-info h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .social-card-info .username {
+      font-size: 13px;
+      color: var(--white-50);
+      direction: ltr;
+      text-align: right;
+    }
+
+    .social-card-info .verified {
+      color: #1DA1F2;
+      margin-right: 4px;
+    }
+
+    .social-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .social-stat-item {
+      text-align: center;
+      padding: 12px;
+      background: var(--white-05);
+      border-radius: 10px;
+    }
+
+    .social-stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .social-stat-label {
+      font-size: 11px;
+      color: var(--white-50);
+    }
+
+    .engagement-bar {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--white-10);
+    }
+
+    .engagement-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .engagement-label {
+      font-size: 13px;
+      color: var(--white-70);
+    }
+
+    .engagement-value {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .engagement-value.good { color: var(--success); }
+    .engagement-value.average { color: var(--warning); }
+    .engagement-value.weak { color: var(--error); }
+
+    .engagement-bar-wrapper {
+      height: 8px;
+      background: var(--white-10);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .engagement-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+
+    .engagement-bar-fill.good { background: var(--success); }
+    .engagement-bar-fill.average { background: var(--warning); }
+    .engagement-bar-fill.weak { background: var(--error); }
+
+    /* Lists */
+    .list-item {
+      display: flex;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--white-05);
+    }
+
+    .list-item:last-child { border-bottom: none; }
+
+    .list-bullet {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    .list-bullet.issue { background: var(--warning); }
+    .list-bullet.rec { background: var(--success); }
+
+    .list-text { font-size: 14px; color: var(--white-70); line-height: 1.7; }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px;
+      color: var(--white-50);
+      font-size: 13px;
+      border-top: 1px solid var(--white-10);
+      margin-top: 60px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .main { padding: 40px 20px; }
+      .hero h1 { font-size: 28px; }
+      .search-row { flex-direction: column; }
+      .search-tabs { flex-wrap: wrap; }
+      .score-section { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+      .sw-grid { grid-template-columns: 1fr; }
+      .social-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="logo">
+      <div class="logo-mark">28</div>
+      <span class="logo-text">Digital Analysis</span>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <section class="hero">
+      <div class="hero-badge">أداة تحليل احترافية</div>
+      <h1>تحليل الحضور الرقمي</h1>
+      <p>أدخل رابط موقع، Google Maps، أو حساب سوشال ميديا للحصول على تحليل شامل</p>
+    </section>
+
+    <section class="search-section">
+      <div class="search-tabs">
+        <div class="search-tab active" data-type="url">رابط موقع / Maps</div>
+        <div class="search-tab" data-type="business">اسم نشاط تجاري</div>
+      </div>
+      <div class="search-row">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input type="text" id="url-input" placeholder="https://example.com أو رابط Google Maps">
+        </div>
+        <button id="analyze-btn" class="search-btn">تحليل</button>
+      </div>
+      <div id="status" class="status">
+        <div class="spinner"></div>
+        <span id="status-text"></span>
+      </div>
+    </section>
+
+    <section id="results" class="results">
+
+      <div id="result-type-badge" class="result-type-badge"></div>
+
+      <!-- Score + Summary -->
+      <div class="score-section">
+        <div class="score-card">
+          <div class="score-ring">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              <circle class="score-ring-bg" cx="80" cy="80" r="70"></circle>
+              <circle class="score-ring-progress" id="score-ring" cx="80" cy="80" r="70"></circle>
+            </svg>
+            <div class="score-value" id="score-value">0%</div>
+          </div>
+          <div class="score-label">درجة الحضور الرقمي</div>
+          <div class="score-status" id="score-status">--</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-title">ملخص التحليل</div>
+          <p class="summary-text" id="summary-text"></p>
+        </div>
+      </div>
+
+      <!-- Business Card (Google) -->
+      <div class="business-card" id="business-card" style="display: none;">
+        <div class="business-header">
+          <div class="business-info">
+            <h2 id="business-name">-</h2>
+            <div class="category" id="business-category">-</div>
+            <div class="address" id="business-address">-</div>
+          </div>
+          <div class="business-rating">
+            <div class="rating-value" id="business-rating">-</div>
+            <div class="rating-max">/5</div>
+            <div class="reviews-count" id="business-reviews">- مراجعة</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sentiment Analysis -->
+      <div class="sentiment-card" id="sentiment-card" style="display: none;">
+        <div class="sentiment-header">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+          </svg>
+          <h3>تحليل المراجعات</h3>
+        </div>
+
+        <div class="sentiment-bars">
+          <div class="sentiment-bar-row">
+            <span class="sentiment-label">😊 إيجابي</span>
+            <div class="sentiment-bar-wrapper">
+              <div class="sentiment-bar positive" id="bar-positive" style="width: 0%"></div>
+            </div>
+            <span class="sentiment-percentage" id="pct-positive">0%</span>
+          </div>
+          <div class="sentiment-bar-row">
+            <span class="sentiment-label">😐 محايد</span>
+            <div class="sentiment-bar-wrapper">
+              <div class="sentiment-bar neutral" id="bar-neutral" style="width: 0%"></div>
+            </div>
+            <span class="sentiment-percentage" id="pct-neutral">0%</span>
+          </div>
+          <div class="sentiment-bar-row">
+            <span class="sentiment-label">😠 سلبي</span>
+            <div class="sentiment-bar-wrapper">
+              <div class="sentiment-bar negative" id="bar-negative" style="width: 0%"></div>
+            </div>
+            <span class="sentiment-percentage" id="pct-negative">0%</span>
+          </div>
+        </div>
+
+        <div class="summary-title">المواضيع الأكثر ذكراً</div>
+        <div class="topics-grid" id="topics-grid"></div>
+
+        <div class="sw-grid">
+          <div class="sw-card strengths">
+            <h4>✅ نقاط القوة</h4>
+            <ul class="sw-list" id="strengths-list"></ul>
+          </div>
+          <div class="sw-card weaknesses">
+            <h4>⚠️ نقاط تحتاج تحسين</h4>
+            <ul class="sw-list" id="weaknesses-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Social Media Stats Cards -->
+      <div class="social-stats-grid" id="social-stats-grid" style="display: none;">
+        
+        <!-- Instagram Card -->
+        <div class="social-stat-card instagram" id="instagram-card" style="display: none;">
+          <div class="social-card-header">
+            <div class="social-card-icon instagram">📸</div>
+            <div class="social-card-info">
+              <h3>Instagram</h3>
+              <div class="username">@<span id="ig-username">-</span> <span id="ig-verified"></span></div>
+            </div>
+          </div>
+          <div class="social-stats-row">
+            <div class="social-stat-item">
+              <div class="social-stat-value" id="ig-followers">-</div>
+              <div class="social-stat-label">متابع</div>
+            </div>
+            <div class="social-stat-item">
+              <div class="social-stat-value" id="ig-posts">-</div>
+              <div class="social-stat-label">منشور</div>
+            </div>
+            <div class="social-stat-item">
+              <div class="social-stat-value" id="ig-following">-</div>
+              <div class="social-stat-label">متابَع</div>
+            </div>
+          </div>
+          <div class="social-stats-row">
+            <div class="social-stat-item">
+              <div class="social-stat-value" id="ig-avg-likes">-</div>
+              <div class="social-stat-label">متوسط اللايكات</div>
+            </div>
+            <div class="social-stat-item">
+              <div class="social-stat-value" id="ig-avg-comments">-</div>
+              <div class="social-stat-label">متوسط التعليقات</div>
+            </div>
+            <div class="social-stat-item">
+              <div class="social-stat-value" id="ig-engagement">-</div>
+              <div class="social-stat-label">معدل التفاعل</div>
+            </div>
+          </div>
+          <div class="engagement-bar">
+            <div class="engagement-header">
+              <span class="engagement-label">مستوى التفاعل</span>
+              <span class="engagement-value" id="ig-engagement-status">-</span>
+            </div>
+            <div class="engagement-bar-wrapper">
+              <div class="engagement-bar-fill" id="ig-engagement-bar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Twitter Card -->
+        <div class="social-stat-card twitter" id="twitter-card" style="display: none;">
+          <div class="social-card-header">
+            <div class="social-card-icon twitter">🐦</div>
+            <div class="social-card-info">
+              <h3>Twitter / X</h3>
+              <div class="username">@<span id="tw-username">-</span> <span id="tw-verified"></span></div>
+            </div>
+          </div>
+          <div class="social-stats-row">
+            <div class="social-stat-item">
+              <div class="social-stat-value" id="tw-followers">-</div>
+              <div class="social-stat-label">متابع</div>
+            </div>
+            <div class="social-stat-item">
+              <div class="social-stat-value" id="tw-tweets">-</div>
+              <div class="social-stat-label">تغريدة</div>
+            </div>
+            <div class="social-stat-item">
+              <div class="social-stat-value" id="tw-following">-</div>
+              <div class="social-stat-label">متابَع</div>
+            </div>
+          </div>
+          <div class="engagement-bar">
+            <div class="engagement-header">
+              <span class="engagement-label">معدل التفاعل</span>
+              <span class="engagement-value" id="tw-engagement">-</span>
+            </div>
+            <div class="engagement-bar-wrapper">
+              <div class="engagement-bar-fill" id="tw-engagement-bar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Info Cards (Website) -->
+      <div class="info-grid" id="website-info" style="display: none;">
+        <div class="info-card">
+          <div class="info-header">
+            <div class="info-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+            </div>
+            <h3 class="info-title">معلومات التواصل</h3>
+          </div>
+          <div id="contacts-list"></div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-header">
+            <div class="info-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+            </div>
+            <h3 class="info-title">المنصات الرقمية</h3>
+          </div>
+          <div class="social-grid" id="social-grid"></div>
+        </div>
+      </div>
+
+      <!-- Issues & Recommendations -->
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-header">
+            <div class="info-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <h3 class="info-title">نقاط تحتاج تحسين</h3>
+          </div>
+          <div id="issues-list"></div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-header">
+            <div class="info-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"></path>
+              </svg>
+            </div>
+            <h3 class="info-title">التوصيات</h3>
+          </div>
+          <div id="recommendations-list"></div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 28 Digital Analysis. جميع الحقوق محفوظة.</p>
+  </footer>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    // Elements
+    const urlInput = document.getElementById("url-input");
+    const analyzeBtn = document.getElementById("analyze-btn");
+    const statusEl = document.getElementById("status");
+    const statusText = document.getElementById("status-text");
+    const resultsSection = document.getElementById("results");
+    const resultTypeBadge = document.getElementById("result-type-badge");
+
+    // Score
+    const scoreRing = document.getElementById("score-ring");
+    const scoreValue = document.getElementById("score-value");
+    const scoreStatus = document.getElementById("score-status");
+    const summaryText = document.getElementById("summary-text");
+
+    // Business
+    const businessCard = document.getElementById("business-card");
+    const businessName = document.getElementById("business-name");
+    const businessCategory = document.getElementById("business-category");
+    const businessAddress = document.getElementById("business-address");
+    const businessRating = document.getElementById("business-rating");
+    const businessReviews = document.getElementById("business-reviews");
+
+    // Sentiment
+    const sentimentCard = document.getElementById("sentiment-card");
+    const barPositive = document.getElementById("bar-positive");
+    const barNeutral = document.getElementById("bar-neutral");
+    const barNegative = document.getElementById("bar-negative");
+    const pctPositive = document.getElementById("pct-positive");
+    const pctNeutral = document.getElementById("pct-neutral");
+    const pctNegative = document.getElementById("pct-negative");
+    const topicsGrid = document.getElementById("topics-grid");
+    const strengthsList = document.getElementById("strengths-list");
+    const weaknessesList = document.getElementById("weaknesses-list");
+
+    // Website
+    const websiteInfo = document.getElementById("website-info");
+    const contactsList = document.getElementById("contacts-list");
+    const socialGrid = document.getElementById("social-grid");
+
+    // Issues & Recommendations
+    const issuesList = document.getElementById("issues-list");
+    const recommendationsList = document.getElementById("recommendations-list");
+
+    // Social Media Stats
+    const socialStatsGrid = document.getElementById("social-stats-grid");
+    const instagramCard = document.getElementById("instagram-card");
+    const twitterCard = document.getElementById("twitter-card");
+
+    // Tabs
+    let searchType = "url";
+    document.querySelectorAll(".search-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".search-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        searchType = tab.dataset.type;
+        urlInput.placeholder = searchType === "url" 
+          ? "https://example.com أو رابط Google Maps" 
+          : "مثال: مكتبة جرير، الرياض";
+      });
+    });
+
+    function setStatus(message, type) {
+      statusText.textContent = message || "";
+      statusEl.className = "status";
+      if (message) statusEl.classList.add("show", type);
+    }
+
+    function getScoreStatus(score) {
+      if (score >= 0.7) return { text: "ممتاز", class: "excellent" };
+      if (score >= 0.5) return { text: "جيد", class: "good" };
+      if (score >= 0.3) return { text: "متوسط", class: "average" };
+      return { text: "يحتاج تحسين", class: "weak" };
+    }
+
+    function formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+      if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+      return num.toString();
+    }
+
+    function getEngagementStatus(rate, platform) {
+      if (platform === "instagram") {
+        if (rate >= 3) return { text: "ممتاز", class: "good" };
+        if (rate >= 1) return { text: "متوسط", class: "average" };
+        return { text: "ضعيف", class: "weak" };
+      } else {
+        if (rate >= 1) return { text: "ممتاز", class: "good" };
+        if (rate >= 0.5) return { text: "متوسط", class: "average" };
+        return { text: "ضعيف", class: "weak" };
+      }
+    }
+
+    function clearResults() {
+      resultsSection.classList.remove("show");
+      businessCard.style.display = "none";
+      sentimentCard.style.display = "none";
+      websiteInfo.style.display = "none";
+      socialStatsGrid.style.display = "none";
+      instagramCard.style.display = "none";
+      twitterCard.style.display = "none";
+    }
+
+    function renderResults(data) {
+      console.log("Data:", data);
+
+      const analysis = data.analysis || {};
+      const score = analysis.digital_presence_score || 0;
+      const scorePercent = Math.round(score * 100);
+
+      // Result Type Badge
+      if (data.type === "google_business") {
+        resultTypeBadge.textContent = "📍 Google Business Profile";
+        resultTypeBadge.className = "result-type-badge google";
+      } else {
+        resultTypeBadge.textContent = "🌐 تحليل موقع";
+        resultTypeBadge.className = "result-type-badge website";
+      }
+
+      // Score
+      const circumference = 440;
+      const offset = circumference - (scorePercent / 100) * circumference;
+      scoreRing.style.strokeDashoffset = offset;
+      scoreValue.textContent = scorePercent + "%";
+      const status = getScoreStatus(score);
+      scoreStatus.textContent = status.text;
+      scoreStatus.className = "score-status " + status.class;
+
+      // Summary
+      summaryText.textContent = analysis.analysis_summary_ar || "لا يوجد ملخص متاح";
+
+      // ===== Google Business =====
+      if (data.type === "google_business" && data.business) {
+        const biz = data.business;
+        businessCard.style.display = "block";
+        businessName.textContent = biz.name || "-";
+        businessCategory.textContent = biz.category || "-";
+        businessAddress.textContent = biz.address || "-";
+        businessRating.textContent = biz.rating ? biz.rating.toFixed(1) : "-";
+        businessReviews.textContent = (biz.reviews_count || 0).toLocaleString() + " مراجعة";
+      }
+
+      // ===== Sentiment Analysis =====
+      if (data.reviews_analysis) {
+        const ra = data.reviews_analysis;
+        sentimentCard.style.display = "block";
+
+        // Sentiment bars
+        const sentiment = ra.sentiment || {};
+        const pos = sentiment.positive_percentage || 0;
+        const neu = sentiment.neutral_percentage || 0;
+        const neg = sentiment.negative_percentage || 0;
+
+        barPositive.style.width = pos + "%";
+        barNeutral.style.width = neu + "%";
+        barNegative.style.width = neg + "%";
+        pctPositive.textContent = pos + "%";
+        pctNeutral.textContent = neu + "%";
+        pctNegative.textContent = neg + "%";
+
+        // Topics
+        const topics = ra.topics || [];
+        topicsGrid.innerHTML = topics.map(t => `
+          <div class="topic-tag">
+            <span class="percentage">${t.percentage}%</span>
+            ${t.topic}
+          </div>
+        `).join("");
+
+        // Strengths
+        const strengths = ra.strengths || [];
+        strengthsList.innerHTML = strengths.map(s => `<li>${s}</li>`).join("");
+
+        // Weaknesses
+        const weaknesses = ra.weaknesses || [];
+        weaknessesList.innerHTML = weaknesses.map(w => `<li>${w}</li>`).join("");
+      }
+
+      // ===== Website Info =====
+      if (data.type === "website" && data.contacts) {
+        websiteInfo.style.display = "grid";
+        const contacts = data.contacts;
+
+        // Contact Info
+        const emails = contacts.emails || [];
+        const phones = contacts.phones || [];
+        const domain = contacts.normalized_domain || "-";
+
+        contactsList.innerHTML = `
+          <div class="contact-row">
+            <span class="contact-label">الدومين</span>
+            <span class="contact-value">${domain}</span>
+          </div>
+          <div class="contact-row">
+            <span class="contact-label">البريد</span>
+            <span class="contact-value">${emails[0]?.email || "غير متوفر"}</span>
+          </div>
+          <div class="contact-row">
+            <span class="contact-label">الهاتف</span>
+            <span class="contact-value">${phones[0]?.phone || "غير متوفر"}</span>
+          </div>
+        `;
+
+        // Social Media
+        const socials = contacts.socials || {};
+        const platforms = [
+          { key: "instagram", name: "Instagram" },
+          { key: "tiktok", name: "TikTok" },
+          { key: "x_twitter", name: "Twitter" },
+          { key: "facebook", name: "Facebook" },
+          { key: "linkedin", name: "LinkedIn" },
+          { key: "youtube", name: "YouTube" },
+          { key: "snapchat", name: "Snapchat" },
+          { key: "whatsapp", name: "WhatsApp" },
+        ];
+
+        socialGrid.innerHTML = platforms.map(p => {
+          const links = socials[p.key] || [];
+          const isActive = links.length > 0;
+          if (isActive) {
+            return `
+              <a href="${links[0]}" target="_blank" class="social-item clickable">
+                <div class="social-name">${p.name}</div>
+                <div class="social-indicator active"></div>
+              </a>
+            `;
+          } else {
+            return `
+              <div class="social-item inactive">
+                <div class="social-name">${p.name}</div>
+                <div class="social-indicator inactive"></div>
+              </div>
+            `;
+          }
+        }).join("");
+      }
+
+      // ===== Social Media Profiles (تفصيلية) =====
+      const socialProfiles = data.social_profiles || {};
+      
+      // أو إذا كان تحليل سوشال ميديا مباشر
+      if (data.type === "instagram" && data.profile) {
+        socialProfiles.instagram = data.profile;
+        resultTypeBadge.textContent = "📸 Instagram";
+        resultTypeBadge.className = "result-type-badge";
+      }
+      if (data.type === "twitter" && data.profile) {
+        socialProfiles.twitter = data.profile;
+        resultTypeBadge.textContent = "🐦 Twitter / X";
+        resultTypeBadge.className = "result-type-badge";
+      }
+      
+      if (Object.keys(socialProfiles).length > 0) {
+        socialStatsGrid.style.display = "grid";
+        
+        // Instagram
+        if (socialProfiles.instagram) {
+          const ig = socialProfiles.instagram;
+          instagramCard.style.display = "block";
+          
+          document.getElementById("ig-username").textContent = ig.username || "-";
+          document.getElementById("ig-verified").innerHTML = ig.is_verified ? '<span class="verified">✓</span>' : '';
+          document.getElementById("ig-followers").textContent = formatNumber(ig.followers || 0);
+          document.getElementById("ig-posts").textContent = formatNumber(ig.posts_count || 0);
+          document.getElementById("ig-following").textContent = formatNumber(ig.following || 0);
+          document.getElementById("ig-avg-likes").textContent = formatNumber(ig.avg_likes || 0);
+          document.getElementById("ig-avg-comments").textContent = formatNumber(ig.avg_comments || 0);
+          document.getElementById("ig-engagement").textContent = (ig.engagement_rate || 0).toFixed(2) + "%";
+          
+          const igEngagement = getEngagementStatus(ig.engagement_rate || 0, "instagram");
+          document.getElementById("ig-engagement-status").textContent = igEngagement.text;
+          document.getElementById("ig-engagement-status").className = "engagement-value " + igEngagement.class;
+          document.getElementById("ig-engagement-bar").style.width = Math.min((ig.engagement_rate || 0) * 20, 100) + "%";
+          document.getElementById("ig-engagement-bar").className = "engagement-bar-fill " + igEngagement.class;
+        }
+        
+        // Twitter
+        if (socialProfiles.twitter) {
+          const tw = socialProfiles.twitter;
+          twitterCard.style.display = "block";
+          
+          document.getElementById("tw-username").textContent = tw.username || "-";
+          document.getElementById("tw-verified").innerHTML = tw.is_verified ? '<span class="verified">✓</span>' : '';
+          document.getElementById("tw-followers").textContent = formatNumber(tw.followers || 0);
+          document.getElementById("tw-tweets").textContent = formatNumber(tw.tweets_count || 0);
+          document.getElementById("tw-following").textContent = formatNumber(tw.following || 0);
+          
+          const twEngagement = getEngagementStatus(tw.engagement_rate || 0, "twitter");
+          document.getElementById("tw-engagement").textContent = (tw.engagement_rate || 0).toFixed(2) + "%";
+          document.getElementById("tw-engagement").className = "engagement-value " + twEngagement.class;
+          document.getElementById("tw-engagement-bar").style.width = Math.min((tw.engagement_rate || 0) * 50, 100) + "%";
+          document.getElementById("tw-engagement-bar").className = "engagement-bar-fill " + twEngagement.class;
+        }
+      }
+
+      // ===== Issues & Recommendations =====
+      const issues = analysis.issues || [];
+      issuesList.innerHTML = issues.map(i => `
+        <div class="list-item">
+          <div class="list-bullet issue"></div>
+          <div class="list-text">${i}</div>
+        </div>
+      `).join("");
+
+      const recommendations = analysis.recommendations_ar || [];
+      recommendationsList.innerHTML = recommendations.map(r => `
+        <div class="list-item">
+          <div class="list-bullet rec"></div>
+          <div class="list-text">${r}</div>
+        </div>
+      `).join("");
+
+      // Show results
+      resultsSection.classList.add("show");
+    }
+
+    async function handleAnalyze() {
+      const input = urlInput.value.trim();
+      if (!input) {
+        setStatus("الرجاء إدخال رابط أو اسم", "error");
+        return;
+      }
+
+      clearResults();
+      setStatus("جاري التحليل... قد يستغرق 1-2 دقيقة", "loading");
+      analyzeBtn.disabled = true;
+
+      const endpoint = searchType === "url" ? "/analyze-url" : "/analyze-business";
+
+      try {
+        const res = await fetch(API_BASE + endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: input })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          setStatus(err.detail || "حدث خطأ", "error");
+          analyzeBtn.disabled = false;
+          return;
+        }
+
+        const data = await res.json();
+        renderResults(data);
+        setStatus("تم التحليل بنجاح ✓", "success");
+        // إخفاء الـ status بعد 3 ثواني
+        setTimeout(() => {
+          statusEl.classList.remove("show");
+        }, 3000);
+      } catch (err) {
+        console.error(err);
+        setStatus("تعذر الاتصال بالخادم", "error");
+      } finally {
+        analyzeBtn.disabled = false;
+      }
+    }
+
+    analyzeBtn.addEventListener("click", handleAnalyze);
+    urlInput.addEventListener("keydown", e => { if (e.key === "Enter") handleAnalyze(); });
+  </script>
+</body>
+</html>

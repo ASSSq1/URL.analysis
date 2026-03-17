@@ -1,0 +1,635 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Any, Dict, Optional, List
+import json
+from pathlib import Path
+import requests
+import time
+import re
+
+from dotenv import load_dotenv
+import os
+from openai import OpenAI
+
+# تحميل متغيرات البيئة
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN")
+
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY غير موجود في .env")
+if not APIFY_API_TOKEN:
+    print("⚠️ تحذير: APIFY_API_TOKEN غير موجود - سيتم استخدام البيانات المحلية فقط")
+
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+app = FastAPI(title="28 Digital Presence Analyzer")
+
+# تفعيل CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ===================== اكتشاف نوع الرابط =====================
+
+def detect_url_type(url: str) -> Dict[str, Any]:
+    """اكتشاف نوع الرابط وتحديد المصدر المناسب"""
+    url_lower = url.lower()
+    
+    # Google Maps
+    if "google.com/maps" in url_lower or "maps.google" in url_lower or "goo.gl/maps" in url_lower:
+        return {"type": "google_maps", "url": url}
+    
+    # Instagram
+    if "instagram.com" in url_lower:
+        username = extract_instagram_username(url)
+        return {"type": "instagram", "username": username, "url": url}
+    
+    # TikTok
+    if "tiktok.com" in url_lower:
+        username = extract_tiktok_username(url)
+        return {"type": "tiktok", "username": username, "url": url}
+    
+    # Twitter/X
+    if "twitter.com" in url_lower or "x.com" in url_lower:
+        username = extract_twitter_username(url)
+        return {"type": "twitter", "username": username, "url": url}
+    
+    # Snapchat
+    if "snapchat.com" in url_lower:
+        username = extract_snapchat_username(url)
+        return {"type": "snapchat", "username": username, "url": url}
+    
+    # YouTube
+    if "youtube.com" in url_lower or "youtu.be" in url_lower:
+        channel = extract_youtube_channel(url)
+        return {"type": "youtube", "channel": channel, "url": url}
+    
+    # موقع عادي
+    return {"type": "website", "url": url}
+
+
+def extract_instagram_username(url: str) -> Optional[str]:
+    """استخراج اسم المستخدم من رابط Instagram"""
+    patterns = [
+        r"instagram\.com/([^/?]+)",
+        r"instagr\.am/([^/?]+)"
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            username = match.group(1)
+            if username not in ["p", "reel", "stories", "explore"]:
+                return username
+    return None
+
+
+def extract_tiktok_username(url: str) -> Optional[str]:
+    """استخراج اسم المستخدم من رابط TikTok"""
+    pattern = r"tiktok\.com/@([^/?]+)"
+    match = re.search(pattern, url)
+    if match:
+        return match.group(1)
+    return None
+
+
+def extract_twitter_username(url: str) -> Optional[str]:
+    """استخراج اسم المستخدم من رابط Twitter/X"""
+    patterns = [
+        r"twitter\.com/([^/?]+)",
+        r"x\.com/([^/?]+)"
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            username = match.group(1)
+            if username not in ["home", "explore", "search", "settings"]:
+                return username
+    return None
+
+
+def extract_snapchat_username(url: str) -> Optional[str]:
+    """استخراج اسم المستخدم من رابط Snapchat"""
+    pattern = r"snapchat\.com/add/([^/?]+)"
+    match = re.search(pattern, url)
+    if match:
+        return match.group(1)
+    return None
+
+
+def extract_youtube_channel(url: str) -> Optional[str]:
+    """استخراج قناة YouTube"""
+    patterns = [
+        r"youtube\.com/channel/([^/?]+)",
+        r"youtube\.com/c/([^/?]+)",
+        r"youtube\.com/@([^/?]+)",
+        r"youtube\.com/user/([^/?]+)"
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+    return None
+
+
+# ===================== Google Maps Scraper مع Reviews =====================
+
+def fetch_google_maps_with_reviews(url_or_query: str, is_url: bool = False) -> Optional[Dict[str, Any]]:
+    """جلب بيانات Google Maps مع المراجعات التفصيلية"""
+    if not APIFY_API_TOKEN:
+        print("⚠️ APIFY_API_TOKEN غير موجود")
+        return None
+    
+    actor_id = "compass~crawler-google-places"
+    run_url = f"https://api.apify.com/v2/acts/{actor_id}/runs?token={APIFY_API_TOKEN}"
+    
+    # إعداد الـ payload
+    if is_url:
+        payload = {
+            "startUrls": [{"url": url_or_query}],
+            "maxCrawledPlacesPerSearch": 1,
+            "scrapeReviewsPersonalData": True,
+            "reviewsSort": "newest",
+            "reviewsStartDate": "",
+            "maxReviews": 50,
+            "language": "ar",
+        }
+    else:
+        payload = {
+            "searchStringsArray": [url_or_query],
+            "maxCrawledPlacesPerSearch": 1,
+            "scrapeReviewsPersonalData": True,
+            "reviewsSort": "newest",
+            "maxReviews": 50,
+            "language": "ar",
+            "region": "sa",
+        }
+    
+    print(f"🗺️ جاري البحث في Google Maps: {url_or_query}")
+    
+    try:
+        response = requests.post(run_url, json=payload, timeout=30)
+        response.raise_for_status()
+        run_data = response.json()
+        run_id = run_data["data"]["id"]
+        print(f"✅ بدأ بحث Maps: {run_id}")
+    except Exception as e:
+        print(f"⚠️ خطأ في تشغيل Maps: {str(e)}")
+        return None
+    
+    # انتظار الاكتمال
+    status_url = f"https://api.apify.com/v2/actor-runs/{run_id}?token={APIFY_API_TOKEN}"
+    max_wait = 120
+    waited = 0
+    
+    while waited < max_wait:
+        try:
+            status_resp = requests.get(status_url, timeout=10)
+            status_data = status_resp.json()
+            status = status_data["data"]["status"]
+            
+            if status == "SUCCEEDED":
+                print("✅ اكتمل بحث Maps")
+                break
+            elif status in ["FAILED", "ABORTED", "TIMED-OUT"]:
+                print(f"⚠️ فشل Maps: {status}")
+                return None
+            
+            time.sleep(3)
+            waited += 3
+            print(f"⏳ انتظار Maps... ({waited}s)")
+            
+        except Exception as e:
+            print(f"⚠️ خطأ: {str(e)}")
+            return None
+    
+    if waited >= max_wait:
+        print("⚠️ انتهت المهلة")
+        return None
+    
+    # جلب النتائج
+    dataset_id = status_data["data"]["defaultDatasetId"]
+    dataset_url = f"https://api.apify.com/v2/datasets/{dataset_id}/items?token={APIFY_API_TOKEN}"
+    
+    try:
+        dataset_resp = requests.get(dataset_url, timeout=30)
+        items = dataset_resp.json()
+        
+        if not items:
+            print("⚠️ لا توجد نتائج")
+            return None
+        
+        place = items[0]
+        
+        # استخراج المراجعات
+        reviews = []
+        raw_reviews = place.get("reviews") or []
+        for r in raw_reviews[:50]:
+            reviews.append({
+                "text": r.get("text") or r.get("snippet") or "",
+                "rating": r.get("stars") or r.get("rating"),
+                "author": r.get("name") or r.get("author"),
+                "date": r.get("publishedAtDate") or r.get("date"),
+                "likes": r.get("likesCount") or 0,
+            })
+        
+        return {
+            "name": place.get("title") or place.get("name"),
+            "rating": place.get("totalScore") or place.get("rating"),
+            "reviews_count": place.get("reviewsCount"),
+            "address": place.get("address"),
+            "phone": place.get("phone"),
+            "website": place.get("website"),
+            "url": place.get("url") or place.get("googleMapsUrl"),
+            "category": place.get("categoryName") or place.get("category"),
+            "location": place.get("location"),
+            "opening_hours": place.get("openingHours"),
+            "reviews": reviews,
+            "images_count": place.get("imageCount") or len(place.get("imageUrls") or []),
+        }
+        
+    except Exception as e:
+        print(f"⚠️ خطأ في جلب النتائج: {str(e)}")
+        return None
+
+
+# ===================== تحليل Sentiment =====================
+
+SENTIMENT_PROMPT = """
+أنت محلل متخصص في تحليل مراجعات العملاء. المطلوب تحليل المراجعات التالية واستخراج:
+
+1. تحليل المشاعر (sentiment):
+   - positive_percentage: نسبة المراجعات الإيجابية
+   - neutral_percentage: نسبة المراجعات المحايدة
+   - negative_percentage: نسبة المراجعات السلبية
+
+2. المواضيع الأكثر ذكراً (topics):
+   - قائمة بأهم المواضيع مع نسبة ذكرها
+
+3. نقاط القوة (strengths):
+   - قائمة بأهم الإيجابيات المذكورة
+
+4. نقاط الضعف (weaknesses):
+   - قائمة بأهم السلبيات المذكورة
+
+5. كلمات مفتاحية (keywords):
+   - أكثر الكلمات تكراراً
+
+6. ملخص عام (summary):
+   - ملخص من 2-3 جمل عن انطباع العملاء
+
+أرجع JSON فقط بدون أي نص إضافي:
+{
+  "sentiment": {
+    "positive_percentage": 65,
+    "neutral_percentage": 20,
+    "negative_percentage": 15
+  },
+  "topics": [
+    {"topic": "القهوة", "percentage": 45},
+    {"topic": "الخدمة", "percentage": 30}
+  ],
+  "strengths": ["جودة المنتج", "الموقع"],
+  "weaknesses": ["بطء الخدمة", "الأسعار"],
+  "keywords": ["ممتاز", "سريع", "غالي"],
+  "summary": "ملخص..."
+}
+"""
+
+
+def analyze_reviews_sentiment(reviews: List[Dict]) -> Optional[Dict[str, Any]]:
+    """تحليل المراجعات واستخراج Sentiment والمواضيع"""
+    if not reviews:
+        return None
+    
+    # تجميع نصوص المراجعات
+    reviews_text = "\n".join([
+        f"- تقييم {r.get('rating', '?')}/5: {r.get('text', '')}"
+        for r in reviews if r.get('text')
+    ])
+    
+    if not reviews_text.strip():
+        return None
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": SENTIMENT_PROMPT},
+                {"role": "user", "content": f"حلل المراجعات التالية:\n\n{reviews_text}"},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.3,
+        )
+        return json.loads(response.choices[0].message.content)
+    except Exception as e:
+        print(f"⚠️ خطأ في تحليل Sentiment: {str(e)}")
+        return None
+
+
+# ===================== Prompts للتحليل =====================
+
+WEBSITE_ANALYSIS_PROMPT = """
+أنت محلل تسويق رقمي متخصص. يصلك كائن JSON فيه بيانات موقع إلكتروني.
+
+مهمتك: تحليل قوة الحضور الرقمي.
+
+أرجع JSON بالهيكل التالي فقط:
+{
+  "analysis_summary_ar": "ملخص من 2-3 جمل",
+  "digital_presence_score": 0.5,
+  "issues": ["مشكلة 1", "مشكلة 2"],
+  "recommendations_ar": ["توصية 1", "توصية 2"]
+}
+
+digital_presence_score: 0-0.3 ضعيف، 0.3-0.6 متوسط، 0.6-0.8 جيد، 0.8-1.0 ممتاز
+"""
+
+
+GOOGLE_BUSINESS_PROMPT = """
+أنت محلل متخصص في Google Business Profile. يصلك بيانات نشاط تجاري من Google Maps.
+
+مهمتك: تقديم تحليل شامل للحضور على Google.
+
+أرجع JSON بالهيكل التالي:
+{
+  "analysis_summary_ar": "ملخص شامل من 3-4 جمل عن وضع النشاط على Google",
+  "digital_presence_score": 0.7,
+  "rating_analysis": "تحليل التقييم والمراجعات",
+  "issues": ["مشكلة 1", "مشكلة 2"],
+  "recommendations_ar": ["توصية 1", "توصية 2"],
+  "competitive_position": "ممتاز/جيد/متوسط/ضعيف"
+}
+
+معايير التقييم:
+- rating >= 4.5 وreviews >= 100 = ممتاز
+- rating >= 4.0 وreviews >= 50 = جيد
+- rating >= 3.5 = متوسط
+- أقل = ضعيف
+"""
+
+
+def call_llm_analysis(data: Dict[str, Any], prompt: str) -> Dict[str, Any]:
+    """استدعاء LLM للتحليل"""
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": json.dumps(data, ensure_ascii=False, indent=2)},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.3,
+        )
+        return json.loads(response.choices[0].message.content)
+    except Exception as e:
+        print(f"⚠️ خطأ في LLM: {str(e)}")
+        return {"error": str(e)}
+
+
+# ===================== Contact Scraper =====================
+
+def fetch_contacts_from_apify(url: str) -> Dict[str, Any]:
+    """استدعاء Apify Contact Info Scraper"""
+    if not APIFY_API_TOKEN:
+        raise HTTPException(status_code=500, detail="APIFY_API_TOKEN غير موجود")
+    
+    actor_id = "vdrmota~contact-info-scraper"
+    run_url = f"https://api.apify.com/v2/acts/{actor_id}/runs?token={APIFY_API_TOKEN}"
+    
+    payload = {
+        "startUrls": [{"url": url}],
+        "maxRequestsPerStartUrl": 50,
+        "maxDepth": 2,
+        "sameDomain": True,
+    }
+    
+    print(f"🚀 جاري استدعاء Apify لـ: {url}")
+    
+    try:
+        response = requests.post(run_url, json=payload, timeout=30)
+        response.raise_for_status()
+        run_data = response.json()
+        run_id = run_data["data"]["id"]
+        print(f"✅ بدأ التشغيل: {run_id}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ في Apify: {str(e)}")
+    
+    # انتظار الاكتمال
+    status_url = f"https://api.apify.com/v2/actor-runs/{run_id}?token={APIFY_API_TOKEN}"
+    max_wait = 120
+    waited = 0
+    
+    while waited < max_wait:
+        try:
+            status_resp = requests.get(status_url, timeout=10)
+            status_data = status_resp.json()
+            status = status_data["data"]["status"]
+            
+            if status == "SUCCEEDED":
+                break
+            elif status in ["FAILED", "ABORTED", "TIMED-OUT"]:
+                raise HTTPException(status_code=500, detail=f"فشل Apify: {status}")
+            
+            time.sleep(3)
+            waited += 3
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    if waited >= max_wait:
+        raise HTTPException(status_code=504, detail="انتهت المهلة")
+    
+    # جلب النتائج
+    dataset_id = status_data["data"]["defaultDatasetId"]
+    dataset_url = f"https://api.apify.com/v2/datasets/{dataset_id}/items?token={APIFY_API_TOKEN}"
+    
+    try:
+        dataset_resp = requests.get(dataset_url, timeout=30)
+        items = dataset_resp.json()
+        
+        if not items:
+            raise HTTPException(status_code=404, detail="لم يتم العثور على بيانات")
+        
+        item = items[0]
+        domain = item.get("domain") or ""
+        
+        return {
+            "source_url": url,
+            "normalized_domain": domain,
+            "emails": [{"email": e, "source": "website"} for e in (item.get("emails") or [])],
+            "phones": [{"phone": p, "source": "website"} for p in (item.get("phones") or [])],
+            "socials": {
+                "instagram": item.get("instagrams") or [],
+                "tiktok": item.get("tiktoks") or [],
+                "snapchat": item.get("snapchats") or [],
+                "x_twitter": item.get("twitters") or [],
+                "facebook": item.get("facebooks") or [],
+                "linkedin": item.get("linkedIns") or [],
+                "youtube": item.get("youtubes") or [],
+                "whatsapp": item.get("whatsapps") or [],
+            },
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def get_contacts_from_local(url: str) -> Optional[Dict[str, Any]]:
+    """البحث في الملف المحلي"""
+    normalized_path = Path("normalized_output.json")
+    if not normalized_path.exists():
+        return None
+    
+    domain = url.replace("https://", "").replace("http://", "").split("/")[0]
+    
+    with normalized_path.open("r", encoding="utf-8") as f:
+        items = json.load(f)
+    
+    for item in items:
+        if item.get("normalized_domain") == domain:
+            print(f"✅ وُجد محلياً: {domain}")
+            return item
+    
+    return None
+
+
+# ===================== API Endpoints =====================
+
+class AnalyzeRequest(BaseModel):
+    url: str
+
+
+@app.post("/analyze-url")
+def analyze_url(req: AnalyzeRequest):
+    """تحليل أي رابط - موقع أو Google Maps أو سوشال ميديا"""
+    
+    url = req.url.strip()
+    url_info = detect_url_type(url)
+    
+    print(f"🔍 نوع الرابط: {url_info['type']}")
+    
+    # =============== Google Maps ===============
+    if url_info["type"] == "google_maps":
+        print("📍 معالجة رابط Google Maps...")
+        
+        # جلب البيانات مع المراجعات
+        maps_data = fetch_google_maps_with_reviews(url, is_url=True)
+        
+        if not maps_data:
+            raise HTTPException(status_code=404, detail="لم يتم العثور على بيانات")
+        
+        # تحليل المراجعات
+        reviews_analysis = None
+        if maps_data.get("reviews"):
+            reviews_analysis = analyze_reviews_sentiment(maps_data["reviews"])
+        
+        # تحليل شامل
+        analysis_data = {
+            "name": maps_data.get("name"),
+            "rating": maps_data.get("rating"),
+            "reviews_count": maps_data.get("reviews_count"),
+            "category": maps_data.get("category"),
+            "reviews_analysis": reviews_analysis,
+        }
+        
+        analysis = call_llm_analysis(analysis_data, GOOGLE_BUSINESS_PROMPT)
+        
+        return {
+            "type": "google_business",
+            "business": maps_data,
+            "reviews_analysis": reviews_analysis,
+            "analysis": analysis,
+        }
+    
+    # =============== Website ===============
+    elif url_info["type"] == "website":
+        print("🌐 معالجة موقع...")
+        
+        # جلب بيانات الاتصال
+        contacts = get_contacts_from_local(url) or fetch_contacts_from_apify(url)
+        
+        # جلب بيانات Google Maps
+        domain = contacts.get("normalized_domain", "")
+        search_query = domain.replace(".com", "").replace(".sa", "").replace("www.", "")
+        maps_data = fetch_google_maps_with_reviews(search_query)
+        
+        # تحليل المراجعات
+        reviews_analysis = None
+        if maps_data and maps_data.get("reviews"):
+            reviews_analysis = analyze_reviews_sentiment(maps_data["reviews"])
+        
+        # تحليل شامل
+        analysis_data = {
+            **contacts,
+            "google_maps": maps_data,
+            "reviews_analysis": reviews_analysis,
+        }
+        
+        analysis = call_llm_analysis(analysis_data, WEBSITE_ANALYSIS_PROMPT)
+        
+        return {
+            "type": "website",
+            "contacts": contacts,
+            "google_maps": maps_data,
+            "reviews_analysis": reviews_analysis,
+            "analysis": analysis,
+        }
+    
+    # =============== Social Media (للمستقبل) ===============
+    else:
+        return {
+            "type": url_info["type"],
+            "message": f"تحليل {url_info['type']} سيتم إضافته قريباً",
+            "detected": url_info,
+        }
+
+
+@app.post("/analyze-business")
+def analyze_business(req: AnalyzeRequest):
+    """تحليل نشاط تجاري بالاسم"""
+    
+    business_name = req.url.strip()
+    
+    print(f"🏢 البحث عن: {business_name}")
+    
+    # البحث في Google Maps
+    maps_data = fetch_google_maps_with_reviews(business_name)
+    
+    if not maps_data:
+        raise HTTPException(status_code=404, detail=f"لم يتم العثور على '{business_name}'")
+    
+    # تحليل المراجعات
+    reviews_analysis = None
+    if maps_data.get("reviews"):
+        reviews_analysis = analyze_reviews_sentiment(maps_data["reviews"])
+    
+    # تحليل شامل
+    analysis = call_llm_analysis({
+        "name": maps_data.get("name"),
+        "rating": maps_data.get("rating"),
+        "reviews_count": maps_data.get("reviews_count"),
+        "category": maps_data.get("category"),
+        "reviews_analysis": reviews_analysis,
+    }, GOOGLE_BUSINESS_PROMPT)
+    
+    return {
+        "type": "google_business",
+        "business": maps_data,
+        "reviews_analysis": reviews_analysis,
+        "analysis": analysis,
+    }
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "version": "2.0"}

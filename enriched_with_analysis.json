@@ -1,0 +1,290 @@
+[
+  {
+    "contacts": {
+      "source_url": "https://twenty8.sa",
+      "normalized_domain": "twenty8.sa",
+      "emails": [],
+      "phones": [],
+      "socials": {
+        "instagram": [
+          "https://www.instagram.com/twenty8sa"
+        ],
+        "tiktok": [
+          "https://www.tiktok.com/@twenty8sa"
+        ],
+        "snapchat": [],
+        "x_twitter": [
+          "https://x.com/twenty8sa",
+          "https://x.com/saudi_aramco",
+          "https://twitter.com/HajMinistry",
+          "https://x.com/KFA_AFA",
+          "https://twitter.com/cgcsaudi"
+        ],
+        "facebook": [],
+        "linkedin": [
+          "https://www.linkedin.com/company/twenty8sa"
+        ],
+        "youtube": []
+      },
+      "raw_provider": {
+        "apify_contact_details": {
+          "domain": "twenty8.sa",
+          "emails": [],
+          "phones": [],
+          "linkedIns": [
+            "https://www.linkedin.com/company/twenty8sa"
+          ],
+          "twitters": [
+            "https://x.com/twenty8sa",
+            "https://x.com/saudi_aramco",
+            "https://twitter.com/HajMinistry",
+            "https://x.com/KFA_AFA",
+            "https://twitter.com/cgcsaudi"
+          ],
+          "instagrams": [
+            "https://www.instagram.com/twenty8sa"
+          ],
+          "facebooks": [],
+          "youtubes": [],
+          "tiktoks": [
+            "https://www.tiktok.com/@twenty8sa"
+          ],
+          "pinterests": [],
+          "discords": [],
+          "snapchats": [],
+          "threads": [],
+          "telegrams": [],
+          "reddits": [],
+          "whatsapps": []
+        }
+      }
+    },
+    "analysis": {
+      "analysis_summary_ar": "الحضور الرقمي للموقع متوسط إلى جيد بفضل وجود حسابات نشطة على إنستغرام، تيك توك، وتويتر، بالإضافة إلى لينكدإن. مع ذلك، يفتقر الموقع إلى معلومات الاتصال المباشرة مثل البريد الإلكتروني وأرقام الهاتف. التنوع في قنوات التواصل الاجتماعي جيد لكنه يحتاج إلى تعزيز قنوات التواصل المباشر.",
+      "digital_presence_score": 0.55,
+      "issues": [
+        "عدم وجود بريد إلكتروني رسمي للتواصل.",
+        "عدم وجود أرقام هواتف للاتصال المباشر.",
+        "غياب قنوات التواصل الاجتماعي مثل فيسبوك ويوتيوب."
+      ],
+      "recommendations_ar": [
+        "إضافة بريد إلكتروني رسمي ورقم هاتف واضح على الموقع.",
+        "تفعيل قنوات تواصل اجتماعي إضافية مثل فيسبوك ويوتيوب لزيادة التفاعل.",
+        "التركيز على تحديث المحتوى بانتظام على المنصات الحالية لتعزيز الحضور الرقمي."
+      ]
+    }
+  },
+  {
+    "contacts": {
+      "source_url": "https://laverne.com",
+      "normalized_domain": "laverne.com",
+      "emails": [],
+      "phones": [],
+      "socials": {
+        "instagram": [],
+        "tiktok": [],
+        "snapchat": [],
+        "x_twitter": [],
+        "facebook": [],
+        "linkedin": [],
+        "youtube": []
+      },
+      "raw_provider": {
+        "apify_contact_details": {
+          "domain": "laverne.com",
+          "emails": [],
+          "phones": [],
+          "linkedIns": [],
+          "twitters": [],
+          "instagrams": [],
+          "facebooks": [],
+          "youtubes": [],
+          "tiktoks": [],
+          "pinterests": [],
+          "discords": [],
+          "snapchats": [],
+          "threads": [],
+          "telegrams": [],
+          "reddits": [],
+          "whatsapps": []
+        }
+      }
+    },
+    "analysis": {
+      "analysis_summary_ar": "الحضور الرقمي لهذا الموقع ضعيف جداً، حيث لا توجد أي معلومات اتصال مثل البريد الإلكتروني أو أرقام الهاتف، كما أن قنوات التواصل الاجتماعي غير متوفرة. هذا يحد من قدرة العملاء على التواصل والتفاعل مع العلامة التجارية.",
+      "digital_presence_score": 0.0,
+      "issues": [
+        "غياب البريد الإلكتروني للتواصل",
+        "عدم وجود أرقام هاتف للاتصال",
+        "عدم وجود حسابات على وسائل التواصل الاجتماعي"
+      ],
+      "recommendations_ar": [
+        "إضافة بريد إلكتروني رسمي للتواصل مع العملاء",
+        "توفير رقم هاتف فعال للرد على الاستفسارات",
+        "إنشاء حسابات رسمية على منصات التواصل الاجتماعي مثل إنستغرام وفيسبوك لتعزيز التفاعل"
+      ]
+    }
+  },
+  {
+    "contacts": {
+      "source_url": "https://deraahstore.com",
+      "normalized_domain": "deraahstore.com",
+      "emails": [
+        {
+          "email": "customerservice@deraah.com.sa",
+          "source": "website",
+          "type": "generic"
+        }
+      ],
+      "phones": [
+        {
+          "phone": "8001186666",
+          "source": "website"
+        }
+      ],
+      "socials": {
+        "instagram": [
+          "https://www.instagram.com/DeraahOnline"
+        ],
+        "tiktok": [
+          "https://www.tiktok.com/@deraahonline"
+        ],
+        "snapchat": [],
+        "x_twitter": [
+          "https://twitter.com/DeraahOnline"
+        ],
+        "facebook": [
+          "https://www.facebook.com/DeraahOnline",
+          "https://www.facebook.com/share.php"
+        ],
+        "linkedin": [],
+        "youtube": [
+          "https://www.youtube.com/channel/UCgQLn_0EUxgSwoxCCDt_FGQ"
+        ]
+      },
+      "raw_provider": {
+        "apify_contact_details": {
+          "domain": "deraahstore.com",
+          "emails": [
+            "customerservice@deraah.com.sa"
+          ],
+          "phones": [
+            "8001186666"
+          ],
+          "linkedIns": [],
+          "twitters": [
+            "https://twitter.com/DeraahOnline"
+          ],
+          "instagrams": [
+            "https://www.instagram.com/DeraahOnline"
+          ],
+          "facebooks": [
+            "https://www.facebook.com/DeraahOnline",
+            "https://www.facebook.com/share.php"
+          ],
+          "youtubes": [
+            "https://www.youtube.com/channel/UCgQLn_0EUxgSwoxCCDt_FGQ"
+          ],
+          "tiktoks": [
+            "https://www.tiktok.com/@deraahonline"
+          ],
+          "pinterests": [],
+          "discords": [],
+          "snapchats": [],
+          "threads": [],
+          "telegrams": [],
+          "reddits": [],
+          "whatsapps": [
+            "https://api.whatsapp.com/send?phone=9668001186666"
+          ]
+        }
+      }
+    },
+    "analysis": {
+      "analysis_summary_ar": "يمتلك الموقع حضورًا رقميًا جيدًا ومتعدد القنوات، حيث يتوفر على بريد إلكتروني عام ورقم هاتف ثابت. كما أن لديه تواجد قوي على منصات التواصل الاجتماعي الرئيسية مثل إنستجرام، تيك توك، تويتر، فيسبوك، ويوتيوب، مما يعزز من تواصله مع الجمهور. هذا التنوع في القنوات يعكس استراتيجية رقمية متكاملة نسبياً.",
+      "digital_presence_score": 0.75,
+      "issues": [
+        "غياب حساب رسمي على لينكدإن.",
+        "عدم وجود تفاعل واضح على سناب شات."
+      ],
+      "recommendations_ar": [
+        "إنشاء حساب رسمي على لينكدإن لتعزيز التواصل مع فئة المحترفين.",
+        "العمل على تفعيل حساب سناب شات أو استبداله بمنصة أخرى أكثر نشاطًا.",
+        "الاستمرار في تحديث المحتوى على جميع المنصات لتعزيز التفاعل."
+      ]
+    }
+  },
+  {
+    "contacts": {
+      "source_url": "https://beefshots.sa",
+      "normalized_domain": "beefshots.sa",
+      "emails": [
+        {
+          "email": "info@beefshots.sa",
+          "source": "website",
+          "type": "generic"
+        }
+      ],
+      "phones": [],
+      "socials": {
+        "instagram": [
+          "https://instagram.com/beefshotsksa"
+        ],
+        "tiktok": [
+          "https://www.tiktok.com/@beefshots_ksa",
+          "https://tiktok.com/@beefshots_ksa"
+        ],
+        "snapchat": [
+          "https://www.snapchat.com/add/beefshotsksa"
+        ],
+        "x_twitter": [],
+        "facebook": [],
+        "linkedin": [],
+        "youtube": []
+      },
+      "raw_provider": {
+        "apify_contact_details": {
+          "domain": "beefshots.sa",
+          "emails": [
+            "info@beefshots.sa"
+          ],
+          "phones": [],
+          "linkedIns": [],
+          "twitters": [],
+          "instagrams": [
+            "https://instagram.com/beefshotsksa"
+          ],
+          "facebooks": [],
+          "youtubes": [],
+          "tiktoks": [
+            "https://www.tiktok.com/@beefshots_ksa",
+            "https://tiktok.com/@beefshots_ksa"
+          ],
+          "pinterests": [],
+          "discords": [],
+          "snapchats": [
+            "https://www.snapchat.com/add/beefshotsksa"
+          ],
+          "threads": [],
+          "telegrams": [],
+          "reddits": [],
+          "whatsapps": []
+        }
+      }
+    },
+    "analysis": {
+      "analysis_summary_ar": "الحضور الرقمي للموقع متوسط إلى جيد، حيث يتوفر بريد إلكتروني رسمي وحسابات نشطة على إنستجرام وتيك توك وسناب شات. رغم ذلك، لا يوجد رقم هاتف متاح ولا حسابات على فيسبوك أو تويتر أو لينكدإن، مما يقلل من تنوع القنوات الرقمية.",
+      "digital_presence_score": 0.6,
+      "issues": [
+        "غياب رقم هاتف للتواصل المباشر",
+        "عدم وجود حسابات على فيسبوك وتويتر ولينكدإن",
+        "اعتماد محدود على قنوات التواصل الاجتماعي"
+      ],
+      "recommendations_ar": [
+        "إضافة رقم هاتف للتواصل المباشر مع العملاء",
+        "إنشاء حسابات على فيسبوك وتويتر ولينكدإن لتعزيز الحضور الرقمي",
+        "تنويع المحتوى والتفاعل عبر القنوات الاجتماعية الحالية لزيادة الوصول"
+      ]
+    }
+  }
+]

@@ -1,0 +1,22 @@
+# 28 Digital Analysis - Requirements
+# Python 3.10+
+
+# Web Framework
+fastapi==0.109.0
+uvicorn==0.27.0
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Data Validation
+pydantic==2.5.3
+
+# HTTP Requests
+requests==2.31.0
+
+# OpenAI API
+openai==1.12.0
+
+# Optional: For future PDF generation
+# reportlab==4.0.8
+# weasyprint==60.1
