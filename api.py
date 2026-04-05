@@ -24,7 +24,7 @@ if not APIFY_API_TOKEN:
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-app = FastAPI(title="28 Digital Presence Analyzer")
+app = FastAPI(title="888 Digital Presence Analyzer")
 
 # تفعيل CORS
 app.add_middleware(
@@ -1110,7 +1110,7 @@ def fetch_twitter_profile(username: str) -> Optional[Dict[str, Any]]:
             "engagement_rate": avg_engagement,
             "latest_tweets": [
                 {
-                    "text": (t.get("full_text") or t.get("text") or "")[:280],
+                    "text": (t.get("full_text") or t.get("text") or "")[:8880],
                     "likes": t.get("favorite_count") or t.get("likes") or 0,
                     "retweets": t.get("retweet_count") or t.get("retweets") or 0,
                     "replies": t.get("reply_count") or t.get("replies") or 0,
